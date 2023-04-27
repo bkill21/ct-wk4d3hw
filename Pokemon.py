@@ -1,5 +1,6 @@
 from requests import get
 from PokeLinkedList import PokeLinkedList
+from Node import Node
 
 class Pokemon():
     
@@ -9,9 +10,8 @@ class Pokemon():
         self.types = []
         self.weight = None
         self.image = None
-        self.call_poke_api()
         self.evo_chain = PokeLinkedList()
-        
+        self.call_poke_api()
 
     def call_poke_api(self):
         if isinstance(self.name, str) and self.name.isalpha():
@@ -36,11 +36,10 @@ class Pokemon():
         evolution_chain_url = data['evolution_chain']['url']
         evolution_chain = get(evolution_chain_url)
         if evolution_chain.status_code == 200:
-            return evolution_chain.json()['chain']
-            
+            return evolution_chain.json()['chain']          
     def evolve_pokemon(self, evolution_chain):
         if not evolution_chain['evolves_to']:
-            print(f'This is the final from')
+            print(f'This is the final form')
             return
         current_pokemon_in_chain = evolution_chain['species']['name']
         next_pokemon_in_chain = evolution_chain['evolves_to'][0]['species']['name']
@@ -52,21 +51,19 @@ class Pokemon():
             return self.evolve_pokemon(evolution_chain['evolves_to'][0])
         
     def add_evolve_chain(self, evolution_chain):
-        if not evolution_chain['evolves_to']:
-            print(f'This is the final from')
-            return 
+        
         current_pokemon_in_chain = evolution_chain['species']['name']
-        next_pokemon_in_chain = evolution_chain['evolves_to'][0]['species']['name']
-        if current_pokemon_in_chain == self.name:
-            self.name = next_pokemon_in_chain
-            self.evo_chain.add_node(self.name)
+        self.evo_chain.add_node(current_pokemon_in_chain)
+
+        if not evolution_chain['evolves_to']:
+            print(f'This is the final form')
             return
-        else:
-            return self.add_evolve_chain(evolution_chain['evolves_to'][0])
+        
+        return self.add_evolve_chain(evolution_chain['evolves_to'][0])
 
 
-pokemon = Pokemon('charmander')
+pokemon = Pokemon('gastly')
 
-pokemon.add_evolve_chain
+pokemon.add_evolve_chain(pokemon.get_evolution_chain())
 
 print(pokemon.evo_chain)
